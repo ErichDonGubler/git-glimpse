@@ -1,0 +1,11 @@
+[package]
+name = "git-aliases"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.71"
+clap = { version = "4.2.7", features = ["derive"] }
+env_logger = "0.10.0"
+ezcmd = { version = "0.1.0", path = "../ezcmd" }
+log = "0.4.17"

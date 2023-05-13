@@ -20,8 +20,7 @@ pub fn show_graph(branches: Option<&[String]>) -> anyhow::Result<ExitStatus> {
     };
     let merge_base = {
         let mut output = output(EasyCommand::new_with("git", |cmd| {
-            cmd.args(["merge-base", "--octopus"])
-                .args(tips.iter().map(|s| &*s))
+            cmd.args(["merge-base", "--octopus"]).args(tips.iter())
         }))?;
         ensure!(output.len() == 1, "");
         let output = output.pop().unwrap();

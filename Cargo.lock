@@ -169,6 +169,7 @@ dependencies = [
 [[package]]
 name = "ezcmd"
 version = "0.1.0"
+source = "git+https://github.com/ErichDonGubler/ezcmd?branch=main#b02d55d2337a0a8dfefaec8755722039b8cb33e4"
 dependencies = [
  "log",
  "shell-words",

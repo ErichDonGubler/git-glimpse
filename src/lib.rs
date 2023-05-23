@@ -136,7 +136,7 @@ pub fn prettylog(config: impl FnOnce(&mut Command) -> &mut Command) -> Result<()
             "--format=format:\
             %C(dim white) ---%C(reset) %C(bold blue)%h%C(reset) %C(dim white)-\
             %C(reset)%C(auto)%d%C(reset)\n\
-            %C(white)%s%C(reset) %C(dim white)%an%C(reset) %C(dim green)(%ar)%C(reset)",
+            %C(white)%s%C(reset) %C(dim white)%aN%C(reset) %C(dim green)(%ar)%C(reset)",
         ]))
         .arg("--") // Make it unambiguous that we're specifying branches first
     })

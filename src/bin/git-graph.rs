@@ -41,6 +41,9 @@ struct PresetConfig {
     /// Include all `@{push}` counterparts.
     #[clap(long = "pushes", short = 'p')]
     select_pushes: bool,
+    /// Include the last tag that contains `HEAD`.
+    #[clap(long = "last-tag")]
+    select_last_tag: bool,
 }
 
 fn main() {
@@ -50,6 +53,7 @@ fn main() {
             config: PresetConfig {
                 select_upstreams: true,
                 select_pushes: true,
+                select_last_tag: false,
             },
         });
         let branches = |sel_config,
@@ -58,6 +62,7 @@ fn main() {
             let PresetConfig {
                 select_upstreams,
                 select_pushes,
+                select_last_tag,
             } = sel_config;
             let head_is_detached = output(EasyCommand::new_with("git", |cmd| {
                 cmd.args(["branch", "--show-current"])
@@ -82,7 +87,21 @@ fn main() {
             if head_is_detached {
                 format.push_str("%(end)");
             }
-            output(list_branches_cmd(|cmd| cmd_config(cmd.arg(format))))
+
+            let mut branches = output(list_branches_cmd(|cmd| cmd_config(cmd.arg(format))))?;
+
+            if select_last_tag {
+                match output(EasyCommand::new_with("git", |cmd| {
+                    cmd.args(["rev-list", "--tags", "--max-count=1"])
+                }))?
+                .pop()
+                {
+                    Some(last_tag) => branches.push(last_tag),
+                    None => log::warn!("last tag requested, but no last tag was found"),
+                }
+            }
+
+            Ok(branches)
         };
         let branches = match subcommand {
             Subcommand::Stack { base, config } => branches(config, &|cmd| {

@@ -97,21 +97,21 @@ where
     let format = format
         .map(Ok)
         .or_else(|| {
-            stdout_lines(EasyCommand::new_with("git", |cmd| {
-                cmd.args(["config", "graph.pretty"])
-            }))
-            .map(|mut lines| {
-                let configged = lines.pop();
-                if configged.is_some() {
-                    log::trace!(
-                        "no format specified, using format from `graph.pretty` config: {configged:?}"
-                    );
-                } else {
-                    log::trace!("no format specified, no format found in `graph.pretty` config");
-                }
-                configged
-            })
-            .transpose()
+            git_config("graph.pretty")
+                .map(|configged| {
+                    if configged.is_some() {
+                        log::trace!(
+                            "no format specified, using format from `graph.pretty` config: \
+                            {configged:?}"
+                        );
+                    } else {
+                        log::trace!(
+                            "no format specified, no format found in `graph.pretty` config"
+                        );
+                    }
+                    configged
+                })
+                .transpose()
         })
         .transpose()?;
     EasyCommand::new_with("git", |cmd| {
@@ -154,4 +154,37 @@ pub fn stdout_lines(mut cmd: EasyCommand) -> Result<Vec<String>> {
         .context("`stdout` was not UTF-8 (!?)")
         .map_err(Error::other)?;
     Ok(stdout.lines().map(|line| line.trim().to_owned()).collect())
+}
+
+pub fn git_config(path: &str) -> Result<Option<String>> {
+    let mut cmd = EasyCommand::new_with("git", |cmd| cmd.arg("config").arg(path));
+    let output = cmd.output().map_err(Into::into).map_err(Error::other)?;
+    let Output {
+        stdout,
+        stderr,
+        status,
+    } = output;
+
+    match status.code() {
+        Some(0) => (),
+        Some(1) => return Ok(None),
+        _ => {
+            io::copy(&mut Cursor::new(stderr), &mut io::stderr()).unwrap();
+            return Err(Error::from_status(status).unwrap_err());
+        }
+    };
+
+    let stdout = String::from_utf8(stdout)
+        .context("`stdout` was not UTF-8 (!?)")
+        .map_err(Error::other)?;
+
+    let mut lines = stdout.lines().map(|line| line.trim().to_owned());
+    log::trace!("`stdout` of {cmd}: {lines:?}");
+
+    let first_line = lines.next();
+    assert!(
+        lines.next().is_none(),
+        "{cmd} returned more than a single line of output"
+    );
+    Ok(first_line)
 }

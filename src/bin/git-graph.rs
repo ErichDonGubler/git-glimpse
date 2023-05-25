@@ -2,7 +2,7 @@ use std::process::Command;
 
 use clap::Parser;
 use ezcmd::EasyCommand;
-use git_aliases::{list_branches_cmd, output, run, show_graph};
+use git_aliases::{list_branches_cmd, run, show_graph, stdout_lines};
 
 /// Show a minimal graph of Git commits.
 ///
@@ -64,7 +64,7 @@ fn main() {
                 select_pushes,
                 select_last_tag,
             } = sel_config;
-            let head_is_detached = output(EasyCommand::new_with("git", |cmd| {
+            let head_is_detached = stdout_lines(EasyCommand::new_with("git", |cmd| {
                 cmd.args(["branch", "--show-current"])
             }))?
             .is_empty();
@@ -88,10 +88,10 @@ fn main() {
                 format.push_str("%(end)");
             }
 
-            let mut branches = output(list_branches_cmd(|cmd| cmd_config(cmd.arg(format))))?;
+            let mut branches = stdout_lines(list_branches_cmd(|cmd| cmd_config(cmd.arg(format))))?;
 
             if select_last_tag {
-                match output(EasyCommand::new_with("git", |cmd| {
+                match stdout_lines(EasyCommand::new_with("git", |cmd| {
                     cmd.args(["rev-list", "--tags", "--max-count=1"])
                 }))?
                 .pop()

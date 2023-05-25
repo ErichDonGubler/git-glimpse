@@ -81,7 +81,7 @@ where
     I: IntoIterator<Item = &'a str> + Clone,
 {
     let merge_base = {
-        let mut output = output(EasyCommand::new_with("git", |cmd| {
+        let mut output = stdout_lines(EasyCommand::new_with("git", |cmd| {
             cmd.args(["merge-base", "--octopus"])
                 .args(object_names.clone().into_iter())
         }))?;
@@ -107,7 +107,7 @@ pub fn list_branches_cmd(config: impl FnOnce(&mut Command) -> &mut Command) -> E
     })
 }
 
-pub fn output(mut cmd: EasyCommand) -> Result<Vec<String>> {
+pub fn stdout_lines(mut cmd: EasyCommand) -> Result<Vec<String>> {
     let output = cmd.output().map_err(Into::into).map_err(Error::other)?;
     let Output {
         stdout,

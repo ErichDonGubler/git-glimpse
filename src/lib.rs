@@ -76,7 +76,7 @@ impl From<ExecuteError<RunErrorKind>> for Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub fn show_graph<'a, I>(object_names: I) -> Result<()>
+pub fn show_graph<'a, I>(format: Option<String>, object_names: I) -> Result<()>
 where
     I: IntoIterator<Item = &'a str> + Clone,
 {
@@ -94,7 +94,30 @@ where
         }
         output.pop().unwrap()
     };
+    let format = format
+        .map(Ok)
+        .or_else(|| {
+            stdout_lines(EasyCommand::new_with("git", |cmd| {
+                cmd.args(["config", "graph.pretty"])
+            }))
+            .map(|mut lines| {
+                let configged = lines.pop();
+                if configged.is_some() {
+                    log::trace!(
+                        "no format specified, using format from `graph.pretty` config: {configged:?}"
+                    );
+                } else {
+                    log::trace!("no format specified, no format found in `graph.pretty` config");
+                }
+                configged
+            })
+            .transpose()
+        })
+        .transpose()?;
     prettylog(|cmd| {
+        if let Some(format) = format {
+            cmd.arg(format!("--format={format}"));
+        }
         cmd.arg("--ancestry-path")
             .arg(format!("^{merge_base}^@"))
             .args(object_names.clone().into_iter())
@@ -129,16 +152,7 @@ pub fn stdout_lines(mut cmd: EasyCommand) -> Result<Vec<String>> {
 
 pub fn prettylog(config: impl FnOnce(&mut Command) -> &mut Command) -> Result<()> {
     EasyCommand::new_with("git", |cmd| {
-        config(cmd.args([
-            "log",
-            "--graph",
-            "--decorate",
-            "--format=format:\
-            %C(dim white) ---%C(reset) %C(bold blue)%h%C(reset) %C(dim white)-\
-            %C(reset)%C(auto)%d%C(reset)\n\
-            %C(white)%s%C(reset) %C(dim white)%aN%C(reset) %C(dim green)(%ar)%C(reset)",
-        ]))
-        .arg("--") // Make it unambiguous that we're specifying branches first
+        config(cmd.args(["log", "--graph", "--decorate"])).arg("--") // Make it unambiguous that we're specifying branches first
     })
     .spawn_and_wait()
     .map_err(Into::into)

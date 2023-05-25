@@ -10,6 +10,8 @@ use git_aliases::{list_branches_cmd, run, show_graph, stdout_lines};
 /// invoked.
 #[derive(Debug, Parser)]
 struct Args {
+    #[clap(long, short)]
+    format: Option<String>,
     #[clap(subcommand)]
     subcommand: Option<Subcommand>,
 }
@@ -48,7 +50,7 @@ struct PresetConfig {
 
 fn main() {
     run(|| {
-        let Args { subcommand } = Args::parse();
+        let Args { format, subcommand } = Args::parse();
         let subcommand = subcommand.unwrap_or_else(|| Subcommand::Local {
             config: PresetConfig {
                 select_upstreams: true,
@@ -111,6 +113,6 @@ fn main() {
             Subcommand::Select { branches } => branches,
         };
         log::debug!("showing graph for branches {branches:?}");
-        show_graph(branches.iter().map(|s| s.as_str()))
+        show_graph(format, branches.iter().map(|s| s.as_str()))
     })
 }

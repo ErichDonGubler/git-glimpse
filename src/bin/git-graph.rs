@@ -106,9 +106,12 @@ fn main() {
             Ok(branches)
         };
         let branches = match subcommand {
-            Subcommand::Stack { base, config } => branches(config, &|cmd| {
-                cmd.args([base.as_deref().unwrap_or("main"), "HEAD"])
-            })?,
+            Subcommand::Stack { base, config } => {
+                let mut branches =
+                    branches(config, &|cmd| cmd.arg(base.as_deref().unwrap_or("main")))?;
+                branches.extend(["HEAD", "HEAD@{u}"].map(ToOwned::to_owned));
+                branches
+            }
             Subcommand::Local { config } => branches(config, &|cmd| cmd)?,
             Subcommand::Select { branches } => branches,
         };

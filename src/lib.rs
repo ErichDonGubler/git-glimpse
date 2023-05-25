@@ -114,14 +114,20 @@ where
             .transpose()
         })
         .transpose()?;
-    prettylog(|cmd| {
+    EasyCommand::new_with("git", |cmd| {
+        cmd.args(["log", "--graph", "--decorate"]);
         if let Some(format) = format {
             cmd.arg(format!("--format={format}"));
         }
         cmd.arg("--ancestry-path")
             .arg(format!("^{merge_base}^@"))
             .args(object_names.clone().into_iter())
+            .arg("--") // Make it unambiguous that we're specifying branches first
     })
+    .spawn_and_wait()
+    .map_err(Into::into)
+    .map_err(Error::other)
+    .and_then(Error::from_status)
 }
 
 pub fn list_branches_cmd(config: impl FnOnce(&mut Command) -> &mut Command) -> EasyCommand {
@@ -148,14 +154,4 @@ pub fn stdout_lines(mut cmd: EasyCommand) -> Result<Vec<String>> {
         .context("`stdout` was not UTF-8 (!?)")
         .map_err(Error::other)?;
     Ok(stdout.lines().map(|line| line.trim().to_owned()).collect())
-}
-
-pub fn prettylog(config: impl FnOnce(&mut Command) -> &mut Command) -> Result<()> {
-    EasyCommand::new_with("git", |cmd| {
-        config(cmd.args(["log", "--graph", "--decorate"])).arg("--") // Make it unambiguous that we're specifying branches first
-    })
-    .spawn_and_wait()
-    .map_err(Into::into)
-    .map_err(Error::other)
-    .and_then(Error::from_status)
 }

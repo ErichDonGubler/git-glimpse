@@ -3,7 +3,7 @@ use std::process::Command;
 
 use clap::Parser;
 use ezcmd::EasyCommand;
-use git_graph::{list_branches_cmd, run, show_graph, stdout_lines};
+use git_graph::{git_config, list_branches_cmd, run, show_graph, stdout_lines};
 
 /// Show a minimal graph of Git commits.
 ///
@@ -108,8 +108,13 @@ fn main() {
         };
         let branches = match subcommand {
             Subcommand::Stack { base, config } => {
-                let mut branches =
-                    branches(config, &|cmd| cmd.arg(base.as_deref().unwrap_or("main")))?;
+                let specified_base = base
+                    .map(Ok)
+                    .or_else(|| git_config("graph.base").transpose())
+                    .transpose()?;
+                let base = specified_base.as_deref().unwrap_or("main");
+
+                let mut branches = branches(config, &|cmd| cmd.arg(base))?;
                 branches.extend(["HEAD", "HEAD@{u}"].map(ToOwned::to_owned));
                 branches
             }

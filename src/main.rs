@@ -123,6 +123,7 @@ fn main() {
                 let mut branches = branches(config, &|cmd| cmd.arg(base))?;
                 branches.push("HEAD".to_owned());
                 if !head_is_detached()? {
+                    // FIXME: local branch with no upstream still fails. :frown:
                     branches.push("HEAD@{u}".to_owned());
                 }
                 branches

@@ -24,6 +24,8 @@ enum Subcommand {
         base: Option<String>,
         #[clap(flatten)]
         config: PresetConfig,
+        // TODO: Allow branches to be specified, but not error if they don't exist.
+        additional_branches: Vec<String>,
     },
     /// Display local branches and, optionally, their upstreams.
     Local {
@@ -113,7 +115,11 @@ fn main() {
             Ok(branches)
         };
         let branches = match subcommand {
-            Subcommand::Stack { base, config } => {
+            Subcommand::Stack {
+                base,
+                config,
+                additional_branches,
+            } => {
                 let specified_base = base
                     .map(Ok)
                     .or_else(|| git_config("graph.base").transpose())
@@ -126,6 +132,7 @@ fn main() {
                     // FIXME: local branch with no upstream still fails. :frown:
                     branches.push("HEAD@{u}".to_owned());
                 }
+                branches.extend(additional_branches.into_iter());
                 branches
             }
             Subcommand::Local { config } => branches(config, &|cmd| cmd)?,

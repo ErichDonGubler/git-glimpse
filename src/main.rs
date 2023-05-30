@@ -121,7 +121,10 @@ fn main() {
                 let base = specified_base.as_deref().unwrap_or("main");
 
                 let mut branches = branches(config, &|cmd| cmd.arg(base))?;
-                branches.extend(["HEAD", "HEAD@{u}"].map(ToOwned::to_owned));
+                branches.push("HEAD".to_owned());
+                if !head_is_detached()? {
+                    branches.push("HEAD@{u}".to_owned());
+                }
                 branches
             }
             Subcommand::Local { config } => branches(config, &|cmd| cmd)?,

@@ -59,6 +59,16 @@ fn main() {
                 select_last_tag: false,
             },
         });
+        let head_is_detached = || {
+            stdout_lines(EasyCommand::new_with("git", |cmd| {
+                cmd.args(["branch", "--show-current"])
+            }))
+            .map(|current| {
+                let is_detached = current.is_empty();
+                log::trace!("`HEAD` is detached: {is_detached:?}");
+                is_detached
+            })
+        };
         let branches = |sel_config,
                         cmd_config: &dyn Fn(&mut Command) -> &mut Command|
          -> git_graph::Result<_> {
@@ -67,11 +77,7 @@ fn main() {
                 select_pushes,
                 select_last_tag,
             } = sel_config;
-            let head_is_detached = stdout_lines(EasyCommand::new_with("git", |cmd| {
-                cmd.args(["branch", "--show-current"])
-            }))?
-            .is_empty();
-            log::trace!("`HEAD` is detached: {head_is_detached:?}");
+            let head_is_detached = head_is_detached()?;
 
             let mut format = "--format=".to_owned();
             if head_is_detached {

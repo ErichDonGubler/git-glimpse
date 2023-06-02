@@ -4,6 +4,7 @@ description = "(WIP) An opinionated command-line tool that uses `git log --graph
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/ErichDonGubler/git-glimpse"
 
 [dependencies]
 anyhow = "1.0.71"

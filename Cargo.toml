@@ -1,5 +1,6 @@
 [package]
 name = "git-glimpse"
+description = "(WIP) An opinionated command-line tool that uses `git log --graph` to only show refs you care about."
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"

@@ -177,7 +177,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "git-graph"
+name = "git-glimpse"
 version = "0.1.0"
 dependencies = [
  "anyhow",

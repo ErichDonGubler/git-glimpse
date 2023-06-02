@@ -3,7 +3,7 @@ use std::process::Command;
 
 use clap::Parser;
 use ezcmd::EasyCommand;
-use git_graph::{git_config, list_branches_cmd, run, show_graph, stdout_lines};
+use git_glimpse::{git_config, list_branches_cmd, run, show_graph, stdout_lines};
 
 /// Show a minimal graph of Git commits.
 ///
@@ -71,7 +71,7 @@ fn main() {
         };
         let branches = |sel_config,
                         cmd_config: &dyn Fn(&mut Command) -> &mut Command|
-         -> git_graph::Result<_> {
+         -> git_glimpse::Result<_> {
             let PresetConfig {
                 select_upstreams,
                 select_pushes,

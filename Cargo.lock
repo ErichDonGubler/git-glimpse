@@ -169,7 +169,8 @@ dependencies = [
 [[package]]
 name = "ezcmd"
 version = "0.1.0"
-source = "git+https://github.com/ErichDonGubler/ezcmd?branch=main#b02d55d2337a0a8dfefaec8755722039b8cb33e4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d49651d6ea136cdb85bdea9468eb96c6db461ebd698097fb58e6f12e5968b383"
 dependencies = [
  "log",
  "shell-words",

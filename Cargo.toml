@@ -10,5 +10,5 @@ repository = "https://github.com/ErichDonGubler/git-glimpse"
 anyhow = "1.0.71"
 clap = { version = "4.2.7", features = ["derive"] }
 env_logger = "0.10.0"
-ezcmd = { version = "0.1.0", git = "https://github.com/ErichDonGubler/ezcmd", branch = "main" }
+ezcmd = "0.1"
 log = "0.4.17"

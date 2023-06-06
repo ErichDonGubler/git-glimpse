@@ -136,7 +136,8 @@ fn main() {
                 let mut branches = branches(&config, &|cmd| cmd.arg(base))?;
                 branches.push("HEAD".to_owned());
                 if !head_is_detached()? {
-                    if config.select_upstreams {
+                    // TODO: This won't work on a new repo that hasn't had a remote created yet.
+                    if config.select_upstreams || Some(base) == current_branch()?.as_deref() {
                         // FIXME: local branch with no upstream still fails. :frown:
                         branches.push("HEAD@{u}".to_owned());
                     } else if config.select_pushes {

@@ -117,7 +117,7 @@ fn main() {
             Subcommand::Stack { base, config } => {
                 let specified_base = base
                     .map(Ok)
-                    .or_else(|| git_config("graph.base").transpose())
+                    .or_else(|| git_config("glimpse.base").transpose())
                     .transpose()?;
                 let base = specified_base.as_deref().unwrap_or("main");
 

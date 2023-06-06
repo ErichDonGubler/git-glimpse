@@ -97,16 +97,16 @@ where
     let format = format
         .map(Ok)
         .or_else(|| {
-            git_config("graph.pretty")
+            git_config("glimpse.pretty")
                 .map(|configged| {
                     if configged.is_some() {
                         log::trace!(
-                            "no format specified, using format from `graph.pretty` config: \
+                            "no format specified, using format from `glimpse.pretty` config: \
                             {configged:?}"
                         );
                     } else {
                         log::trace!(
-                            "no format specified, no format found in `graph.pretty` config"
+                            "no format specified, no format found in `glimpse.pretty` config"
                         );
                     }
                     configged

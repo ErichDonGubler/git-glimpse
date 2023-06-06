@@ -119,7 +119,11 @@ fn main() {
                     .map(Ok)
                     .or_else(|| git_config("glimpse.base").transpose())
                     .transpose()?;
-                let base = specified_base.as_deref().unwrap_or("main");
+                let base = specified_base.as_deref().unwrap_or_else(|| {
+                    let default = "main";
+                    log::debug!("no base branch specified in command line or configuration, falling back to {default:?}");
+                    default
+                });
 
                 let mut branches = branches(&config, &|cmd| cmd.arg(base))?;
                 branches.push("HEAD".to_owned());

@@ -7,8 +7,8 @@ use git_glimpse::{git_config, list_branches_cmd, run, show_graph, stdout_lines};
 
 /// Show a minimal graph of Git commits.
 ///
-/// When no arguments are specified, this commands runs as if the `local --upstreams --pushes` was
-/// invoked.
+/// When no arguments are specified, this commands runs as if the `stack` subcommand was invoked
+/// with no arguments.
 #[derive(Debug, Parser)]
 struct Args {
     #[clap(long, short)]
@@ -52,7 +52,8 @@ struct PresetConfig {
 fn main() {
     run(|| {
         let Args { format, subcommand } = Args::parse();
-        let subcommand = subcommand.unwrap_or_else(|| Subcommand::Local {
+        let subcommand = subcommand.unwrap_or_else(|| Subcommand::Stack {
+            base: None,
             config: PresetConfig {
                 select_upstreams: false,
                 select_pushes: false,

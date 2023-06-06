@@ -26,7 +26,7 @@ enum Subcommand {
         config: PresetConfig,
     },
     /// Display local branches and, optionally, their upstreams.
-    Local {
+    Locals {
         #[clap(flatten)]
         config: PresetConfig,
     },

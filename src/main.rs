@@ -127,6 +127,8 @@ fn main() {
                     if config.select_upstreams {
                         // FIXME: local branch with no upstream still fails. :frown:
                         branches.push("HEAD@{u}".to_owned());
+                    } else if config.select_pushes {
+                        branches.push("HEAD@{push}".to_owned());
                     }
                 }
                 branches

@@ -60,12 +60,20 @@ fn main() {
                 select_last_tag: false,
             },
         });
-        let head_is_detached = || {
+        let current_branch = || {
             stdout_lines(EasyCommand::new_with("git", |cmd| {
                 cmd.args(["branch", "--show-current"])
             }))
-            .map(|current| {
-                let is_detached = current.is_empty();
+            .map(|mut lines| {
+                let current_branch = lines.pop();
+                log::trace!("current branch: {current_branch:?}");
+                debug_assert!(lines.is_empty());
+                current_branch
+            })
+        };
+        let head_is_detached = || {
+            current_branch().map(|current| {
+                let is_detached = current.is_some();
                 log::trace!("`HEAD` is detached: {is_detached:?}");
                 is_detached
             })

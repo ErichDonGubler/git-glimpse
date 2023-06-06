@@ -54,8 +54,8 @@ fn main() {
         let Args { format, subcommand } = Args::parse();
         let subcommand = subcommand.unwrap_or_else(|| Subcommand::Local {
             config: PresetConfig {
-                select_upstreams: true,
-                select_pushes: true,
+                select_upstreams: false,
+                select_pushes: false,
                 select_last_tag: false,
             },
         });

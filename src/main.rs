@@ -69,7 +69,7 @@ fn main() {
                 is_detached
             })
         };
-        let branches = |sel_config,
+        let branches = |sel_config: &_,
                         cmd_config: &dyn Fn(&mut Command) -> &mut Command|
          -> git_glimpse::Result<_> {
             let PresetConfig {
@@ -87,10 +87,10 @@ fn main() {
             let mut include_in_format = |prop_name: &str| {
                 format += &format!("%(if)%({prop_name})%(then)\n%({prop_name}:short)%(end)");
             };
-            if select_upstreams {
+            if *select_upstreams {
                 include_in_format("upstream");
             }
-            if select_pushes {
+            if *select_pushes {
                 include_in_format("push");
             }
             if head_is_detached {
@@ -99,7 +99,7 @@ fn main() {
 
             let mut branches = stdout_lines(list_branches_cmd(|cmd| cmd_config(cmd.arg(format))))?;
 
-            if select_last_tag {
+            if *select_last_tag {
                 match stdout_lines(EasyCommand::new_with("git", |cmd| {
                     cmd.args(["rev-list", "--tags", "--max-count=1"])
                 }))?
@@ -120,7 +120,7 @@ fn main() {
                     .transpose()?;
                 let base = specified_base.as_deref().unwrap_or("main");
 
-                let mut branches = branches(config, &|cmd| cmd.arg(base))?;
+                let mut branches = branches(&config, &|cmd| cmd.arg(base))?;
                 branches.push("HEAD".to_owned());
                 if !head_is_detached()? {
                     // FIXME: local branch with no upstream still fails. :frown:
@@ -128,7 +128,7 @@ fn main() {
                 }
                 branches
             }
-            Subcommand::Local { config } => branches(config, &|cmd| cmd)?,
+            Subcommand::Locals { config } => branches(&config, &|cmd| cmd)?,
             Subcommand::Select { branches } => branches,
         };
         log::debug!("showing graph for branches {branches:?}");

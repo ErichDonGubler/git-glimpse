@@ -127,17 +127,13 @@ fn main() {
                     default
                 });
 
-                let mut branches = branches(&config, &|cmd| cmd.arg(base))?;
-                branches.push("HEAD".to_owned());
-                if current_branch()?.is_some() {
-                    if config.select_upstreams {
-                        // FIXME: local branch with no upstream still fails. :frown:
-                        branches.push("HEAD@{u}".to_owned());
-                    } else if config.select_pushes {
-                        branches.push("HEAD@{push}".to_owned());
-                    }
+                if let Some(current_branch) = current_branch()? {
+                    branches(&config, &|cmd| cmd.arg(base).arg(&current_branch))?
+                } else {
+                    let mut branches = branches(&config, &|cmd| cmd.arg(base))?;
+                    branches.push("HEAD".to_owned());
+                    branches
                 }
-                branches
             }
             Subcommand::Locals { config } => branches(&config, &|cmd| cmd)?,
             Subcommand::Select { branches } => branches,

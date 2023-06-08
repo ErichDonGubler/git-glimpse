@@ -67,15 +67,9 @@ fn main() {
             .map(|mut lines| {
                 let current_branch = lines.pop();
                 log::trace!("current branch: {current_branch:?}");
+                log::trace!("`HEAD` is detached: {:?}", current_branch.is_some());
                 debug_assert!(lines.is_empty());
                 current_branch
-            })
-        };
-        let head_is_detached = || {
-            current_branch().map(|current| {
-                let is_detached = current.is_some();
-                log::trace!("`HEAD` is detached: {is_detached:?}");
-                is_detached
             })
         };
         let branches = |sel_config: &_,
@@ -86,7 +80,7 @@ fn main() {
                 select_pushes,
                 select_last_tag,
             } = sel_config;
-            let head_is_detached = head_is_detached()?;
+            let head_is_detached = current_branch()?.is_none();
 
             let mut format = "--format=".to_owned();
             if head_is_detached {
@@ -135,7 +129,7 @@ fn main() {
 
                 let mut branches = branches(&config, &|cmd| cmd.arg(base))?;
                 branches.push("HEAD".to_owned());
-                if !head_is_detached()? {
+                if current_branch()?.is_some() {
                     if config.select_upstreams {
                         // FIXME: local branch with no upstream still fails. :frown:
                         branches.push("HEAD@{u}".to_owned());

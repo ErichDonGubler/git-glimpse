@@ -128,7 +128,16 @@ fn main() {
                 });
 
                 if let Some(current_branch) = current_branch()? {
-                    branches(&config, &|cmd| cmd.arg(base).arg(&current_branch))?
+                    let mut config = config;
+                    if current_branch == base {
+                        config.select_upstreams = true;
+                    }
+                    branches(&config, &|cmd| {
+                        if base != current_branch {
+                            cmd.arg(base);
+                        }
+                        cmd.arg(&current_branch)
+                    })?
                 } else {
                     let mut branches = branches(&config, &|cmd| cmd.arg(base))?;
                     branches.push("HEAD".to_owned());

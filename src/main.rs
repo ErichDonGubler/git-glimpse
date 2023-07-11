@@ -1,4 +1,3 @@
-// TODO: move to `src/bin.rs`
 use std::{ffi::OsString, process::Command};
 
 use clap::Parser;

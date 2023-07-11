@@ -1,4 +1,5 @@
 use std::{
+    ffi::OsStr,
     io::{self, Cursor},
     process::{exit, Command, ExitStatus, Output},
 };
@@ -76,9 +77,10 @@ impl From<ExecuteError<RunErrorKind>> for Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub fn show_graph<'a, I>(format: Option<String>, object_names: I) -> Result<()>
+pub fn show_graph<'a, Os, Fs>(format: Option<String>, object_names: Os, files: Fs) -> Result<()>
 where
-    I: IntoIterator<Item = &'a str> + Clone,
+    Os: IntoIterator<Item = &'a str> + Clone,
+    Fs: IntoIterator<Item = &'a OsStr> + Clone,
 {
     let merge_base = {
         let mut output = stdout_lines(EasyCommand::new_with("git", |cmd| {
@@ -123,6 +125,7 @@ where
             .arg(format!("^{merge_base}^@"))
             .args(object_names.clone().into_iter())
             .arg("--") // Make it unambiguous that we're specifying branches first
+            .args(files)
     })
     .spawn_and_wait()
     .map_err(Into::into)

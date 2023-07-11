@@ -1,5 +1,5 @@
 // TODO: move to `src/bin.rs`
-use std::process::Command;
+use std::{ffi::OsString, process::Command};
 
 use clap::Parser;
 use ezcmd::EasyCommand;
@@ -24,15 +24,21 @@ enum Subcommand {
         base: Option<String>,
         #[clap(flatten)]
         config: PresetConfig,
+        #[clap(flatten)]
+        files: FileSelection,
     },
     /// Display local branches and, optionally, their upstreams.
     Locals {
         #[clap(flatten)]
         config: PresetConfig,
+        #[clap(flatten)]
+        files: FileSelection,
     },
     Select {
         /// Additional branches to include.
         branches: Vec<String>,
+        #[clap(flatten)]
+        files: FileSelection,
     },
 }
 
@@ -49,6 +55,13 @@ struct PresetConfig {
     select_last_tag: bool,
 }
 
+#[derive(Debug, Parser)]
+struct FileSelection {
+    /// Files by which to filter history.
+    #[clap(raw(true))]
+    files: Vec<OsString>,
+}
+
 fn main() {
     run(|| {
         let Args { format, subcommand } = Args::parse();
@@ -59,6 +72,7 @@ fn main() {
                 select_pushes: false,
                 select_last_tag: false,
             },
+            files: FileSelection { files: vec![] },
         });
         let current_branch = || {
             stdout_lines(EasyCommand::new_with("git", |cmd| {
@@ -115,8 +129,12 @@ fn main() {
 
             Ok(branches)
         };
-        let branches = match subcommand {
-            Subcommand::Stack { base, config } => {
+        let (branches, files) = match subcommand {
+            Subcommand::Stack {
+                base,
+                config,
+                files: FileSelection { files },
+            } => {
                 let specified_base = base
                     .map(Ok)
                     .or_else(|| git_config("glimpse.base").transpose())
@@ -127,7 +145,7 @@ fn main() {
                     default
                 });
 
-                if let Some(current_branch) = current_branch()? {
+                let branches = if let Some(current_branch) = current_branch()? {
                     let mut config = config;
                     if current_branch == base {
                         config.select_upstreams = true;
@@ -142,12 +160,23 @@ fn main() {
                     let mut branches = branches(&config, &|cmd| cmd.arg(base))?;
                     branches.push("HEAD".to_owned());
                     branches
-                }
+                };
+                (branches, files)
             }
-            Subcommand::Locals { config } => branches(&config, &|cmd| cmd)?,
-            Subcommand::Select { branches } => branches,
+            Subcommand::Locals {
+                config,
+                files: FileSelection { files },
+            } => (branches(&config, &|cmd| cmd)?, files),
+            Subcommand::Select {
+                branches,
+                files: FileSelection { files },
+            } => (branches, files),
         };
         log::debug!("showing graph for branches {branches:?}");
-        show_graph(format, branches.iter().map(|s| s.as_str()))
+        show_graph(
+            format,
+            branches.iter().map(|s| s.as_str()),
+            files.iter().map(|f| f.as_os_str()),
+        )
     })
 }

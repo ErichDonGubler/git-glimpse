@@ -54,6 +54,18 @@ enum Subcommand {
         #[clap(flatten)]
         files: FileSelection,
     },
+    /// Select the (local) mainline branch and the most recent tag.
+    ///
+    /// Many Git projects use tags to manage project releases and/or milestones. This command is
+    /// useful for viewing the set of changes since the most recent tag. This can be helpful when
+    /// for example, analyzing changes for determining which SemVer version to use for a next
+    /// release, performing risk assessments, or writing release notes.
+    SinceLastTag {
+        #[clap(long, short)]
+        base: Option<String>,
+        #[clap(flatten)]
+        files: FileSelection,
+    },
     /// Select a custom set of commit-ish refs.
     Select {
         /// Additional branches to include.
@@ -193,6 +205,21 @@ fn main() {
                 config,
                 files: FileSelection { files },
             } => (branches(&config, &|cmd| cmd)?, files),
+            Subcommand::SinceLastTag {
+                base,
+                files: FileSelection { files },
+            } => {
+                let base = base.map(Ok).unwrap_or_else(fallback_base)?;
+                let branches = branches(
+                    &PresetConfig {
+                        select_upstreams: false,
+                        select_pushes: false,
+                        select_last_tag: true,
+                    },
+                    &|cmd| cmd.arg(&base),
+                )?;
+                (branches, files)
+            }
             Subcommand::Select {
                 branches,
                 files: FileSelection { files },

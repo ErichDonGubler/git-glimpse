@@ -4,7 +4,7 @@ use clap::Parser;
 use ezcmd::EasyCommand;
 use git_glimpse::{git_config, list_branches_cmd, run, show_graph, stdout_lines};
 
-/// Show a minimal graph of Git commits.
+/// Show a minimal graph of Git commits for various use cases.
 ///
 /// When no arguments are specified, this commands runs as if the `stack` subcommand was invoked
 /// with no arguments.

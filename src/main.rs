@@ -150,22 +150,27 @@ fn main() {
 
             Ok(branches)
         };
+
+        let fallback_base = || -> git_glimpse::Result<_> {
+            let base = git_config("glimpse.base")?;
+            let base = base.unwrap_or_else(|| {
+                let default = "main";
+                log::debug!(
+                    "no base branch specified in command line or configuration, falling back to \
+                    {default:?}"
+                );
+                default.to_owned()
+            });
+            Ok(base)
+        };
+
         let (branches, files) = match subcommand {
             Subcommand::Stack {
                 base,
                 config,
                 files: FileSelection { files },
             } => {
-                let specified_base = base
-                    .map(Ok)
-                    .or_else(|| git_config("glimpse.base").transpose())
-                    .transpose()?;
-                let base = specified_base.as_deref().unwrap_or_else(|| {
-                    let default = "main";
-                    log::debug!("no base branch specified in command line or configuration, falling back to {default:?}");
-                    default
-                });
-
+                let base = base.map(Ok).unwrap_or_else(fallback_base)?;
                 let branches = if let Some(current_branch) = current_branch()? {
                     let mut config = config;
                     if current_branch == base {
@@ -173,12 +178,12 @@ fn main() {
                     }
                     branches(&config, &|cmd| {
                         if base != current_branch {
-                            cmd.arg(base);
+                            cmd.arg(&base);
                         }
                         cmd.arg(&current_branch)
                     })?
                 } else {
-                    let mut branches = branches(&config, &|cmd| cmd.arg(base))?;
+                    let mut branches = branches(&config, &|cmd| cmd.arg(&base))?;
                     branches.push("HEAD".to_owned());
                     branches
                 };

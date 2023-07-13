@@ -4,12 +4,20 @@ use clap::Parser;
 use ezcmd::EasyCommand;
 use git_glimpse::{git_config, list_branches_cmd, run, show_graph, stdout_lines};
 
-/// Show a minimal graph of Git commits.
+/// Show a minimal graph of Git commits for various use cases.
 ///
-/// When no arguments are specified, this commands runs as if the `stack` subcommand was invoked
+/// When no arguments are specified, this commands runs as if the `stack` command was invoked
 /// with no arguments.
+///
+/// This binary has two optional points of Git configuration:
+///
+/// * `glimpse.base`: Sets the mainline branch. It is recommended that you use this only if
+///   this command does not correctly detect your mainline branch out-of-the-box.
+///
+/// * `glimpse.pretty`: The fallback value for the `--format` argument of this command.
 #[derive(Debug, Parser)]
 struct Args {
+    /// Set the `--pretty` argument for underlying Git CLI calls.
     #[clap(long, short)]
     format: Option<String>,
     #[clap(subcommand)]
@@ -18,6 +26,11 @@ struct Args {
 
 #[derive(Debug, Parser)]
 enum Subcommand {
+    /// Select the current "stack" of commits.
+    ///
+    /// A "stack" selection in this context includes the currently checked out branch and mainline
+    /// branch. This is useful for day-to-day work, where you want only the commits relevant to
+    /// what you're currently working on.
     Stack {
         #[clap(long, short)]
         base: Option<String>,
@@ -26,13 +39,22 @@ enum Subcommand {
         #[clap(flatten)]
         files: FileSelection,
     },
-    /// Display local branches and, optionally, their upstreams.
+    /// Select all local Git branches.
+    ///
+    /// During typical work using Git, you may have several different "stacks" of work (see also
+    /// the `stack` command). These tend to correspond to locally checked out branches. This
+    /// command is useful for viewing all of them at the same time.
+    ///
+    /// If the set of branches you'd like to work with is significantly smaller than this set of
+    /// branches, this command might be too noisy for you. You may want to consider using a Git
+    /// alias for a `select` command invocation instead.
     Locals {
         #[clap(flatten)]
         config: PresetConfig,
         #[clap(flatten)]
         files: FileSelection,
     },
+    /// Select a custom set of commit-ish refs.
     Select {
         /// Additional branches to include.
         branches: Vec<String>,
@@ -43,13 +65,13 @@ enum Subcommand {
 
 #[derive(Debug, Parser)]
 struct PresetConfig {
-    /// Include all `@{upstream}` counterparts.
+    /// Also include all `@{upstream}` counterparts to selected branches.
     #[clap(long = "upstreams", short = 'u')]
     select_upstreams: bool,
-    /// Include all `@{push}` counterparts.
+    /// Also select all `@{push}` counterparts to selected branches.
     #[clap(long = "pushes", short = 'p')]
     select_pushes: bool,
-    /// Include the last tag that contains `HEAD`.
+    /// Also select the last tag that contains `HEAD`.
     #[clap(long = "last-tag")]
     select_last_tag: bool,
 }

@@ -148,7 +148,7 @@ pub fn stdout_lines(mut cmd: EasyCommand) -> Result<Vec<String>> {
     } = output;
 
     let status_res = Error::from_status(status);
-    if let Err(_) = &status_res {
+    if status_res.is_err() {
         io::copy(&mut Cursor::new(stderr), &mut io::stderr()).unwrap();
     }
     status_res?;

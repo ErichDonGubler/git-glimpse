@@ -10,7 +10,7 @@ repository = "https://github.com/ErichDonGubler/git-glimpse"
 anyhow = "1.0.71"
 clap = { version = "4.2.7", features = ["derive"] }
 env_logger = "0.10.0"
-ezcmd = "0.1"
+ezcmd = "0.2"
 log = "0.4.17"
 
 # The profile that `cargo dist` will build with

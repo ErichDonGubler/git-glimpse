@@ -135,7 +135,7 @@ where
 
 pub fn list_branches_cmd(config: impl FnOnce(&mut Command) -> &mut Command) -> EasyCommand {
     EasyCommand::new_with("git", |cmd| {
-        config(cmd.args(["branch", "--list", "--remote", "--format=%(refname:short)"]))
+        config(cmd.args(["branch", "--list", "--all", "--format=%(refname:short)"]))
     })
 }
 

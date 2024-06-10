@@ -178,7 +178,7 @@ fn main() {
                         cmd.arg(&current_branch)
                     })?
                 } else {
-                    let mut branches = branches(&config, &|cmd| cmd.arg(base))?;
+                    let mut branches = branches(&config, &|cmd| cmd.arg(base).arg("--all"))?;
                     branches.push("HEAD".to_owned());
                     branches
                 };

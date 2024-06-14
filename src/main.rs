@@ -175,7 +175,7 @@ fn main() {
                         if base != current_branch {
                             cmd.arg(base);
                         }
-                        cmd.arg(&current_branch)
+                        cmd.arg(&current_branch).arg("--all")
                     })?
                 } else {
                     let mut branches = branches(&config, &|cmd| cmd.arg(base).arg("--all"))?;
